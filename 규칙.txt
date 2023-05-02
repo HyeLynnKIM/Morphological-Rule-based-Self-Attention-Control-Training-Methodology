@@ -1,0 +1,330 @@
+규칙 1
+    def make_attention_matrix(self, document, add=0):
+        # Assume Multi-sentence
+        sentences = document.replace('\n', ' ').replace('. ', '\n').split('\n')
+
+        # Make Matrix Format for seq * seq size
+        pos_attention_matrix = np.zeros(shape=[self.max_length, self.max_length])
+
+        tokens = []
+        power = 1.0
+        default = 0.0
+
+        for sentence in sentences:
+            # In, Multi-sentences, if there is a space in sentence, split this.
+            # But there is no space in sentnece, I think space will be appended in the last.
+            sentence = sentence.strip() + '.'
+
+            token_pos = self.token_pos_align(sentence)
+
+            # one token matrix composition
+            for p, pos in enumerate(token_pos):
+                tokens.append(pos[0])
+
+                # total_length
+                for j in range(len(token_pos)):
+                    pos_attention_matrix[p + add, j + add] = default
+                    print(j)
+
+                try:
+                    # Verb -> all josa
+                    if pos[1].find('VV') != -1:
+                        for j in range(0, p):
+                            #if token_pos[j][1][0] == 'N':
+                            #    pos_attention_matrix[p + add, j + add] = power
+                            #    pos_attention_matrix[j + add, p + add] = power
+                            if token_pos[j][1][0] == 'J':
+                                pos_attention_matrix[p + add, j + add] = power
+                                pos_attention_matrix[j + add, p + add] = power
+
+                    # ## +++
+                    # if pos[1] == 'XSV+EP':
+                    #     pos_attention_matrix[p + add, p - 1 + add] = power
+                    #     pos_attention_matrix[p - 1 + add, p + add] = power
+
+                    # Josa Case
+                    if pos[1] in ['JKS', 'JKC', 'JKG', 'JKO', 'JKV', 'JX']:
+                        for j in reversed(range(0, p)):
+                            if token_pos[j][1][0] == 'N':
+                                pos_attention_matrix[p + add, j + add] = power
+                                pos_attention_matrix[j + add, p + add] = power
+                            else:
+                                break
+                    # ++
+                    if pos[1] == 'JKB':
+                        for j in reversed(range(0, p)):
+                            if token_pos[j][1] == 'MAG':
+                                pos_attention_matrix[p + add, j + add] = power
+                                pos_attention_matrix[j + add, p + add] = power
+                            else:
+                                break
+
+                    # X head ++
+                    if pos[1] == 'XPN':
+                        pos_attention_matrix[p + add, p + 1 + add] = power
+                        pos_attention_matrix[p + 1 + add, p + add] = power
+
+                    if pos[1][0] == 'X' and pos[1] != 'XPN':
+                        pos_attention_matrix[p + add, p - 1 + add] = power
+                        pos_attention_matrix[p - 1 + add, p + add] = power
+
+                    # MM ++
+                    if pos[1] == 'MM':
+                        try:
+                            for j in reversed(range(p + 1, len(token_pos))):
+                                if token_pos[j][1] == 'NNG':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                                elif token_pos[j][1] == 'NNP':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                        except:
+                            None
+
+                    # VA+ETM ++
+                    if pos[1] == 'VA+ETM':
+                        try:
+                            for j in range(p + 1, len(token_pos)):
+                                if token_pos[j][1] == 'NNG':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                                elif token_pos[j][1] == 'NNP':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                        except:
+                            None
+
+                    # MAG ++
+                    if pos[1] == 'MAG':
+                        try:
+                            for j in reversed(range(p + 1, len(token_pos))):
+                                if token_pos[j][1] == 'MAG':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                elif token_pos[j][1] == 'VV':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                                # elif token_pos[j][1] == 'XSV+EP':
+                                #     pos_attention_matrix[p + add, j + add] = power
+                                #     pos_attention_matrix[j + add, p + add] = power
+                                #     break
+                        except:
+                            None
+
+                    # V to O ++
+                    if pos[1] == 'VV':
+                        for j in reversed(range(0, p)):
+                            if pos[j] == 'JKO':
+                                pos_attention_matrix[p + add, j + add] = power
+                                pos_attention_matrix[j + add, p + add] = power
+
+                                for k in range(token_pos):
+                                    if pos[1] == 'NN':
+                                        pos_attention_matrix[p + add, k + add] = power
+                                        pos_attention_matrix[k + add, p + add] = power
+                                        break
+                                    elif pos[1] == 'NP':
+                                        pos_attention_matrix[p + add, k + add] = power
+                                        pos_attention_matrix[k + add, p + add] = power
+                                        break
+                                    elif pos[1] == 'NNP':
+                                        pos_attention_matrix[p + add, k + add] = power
+                                        pos_attention_matrix[k + add, p + add] = power
+                                        break
+
+                except:
+                    #print('except!')
+                    None
+
+            add += len(token_pos)
+
+        return tokens, pos_attention_matrix
+
+규칙 2
+                    if pos[1] == 'NNB':
+                        pos_attention_matrix[p + add, p - 1 + add] = power
+                        pos_attention_matrix[p - 1 + add, p + add] = power
+
+                    if pos[1] == 'NNBC':
+                        pos_attention_matrix[p - 1 + add, p + add] = power
+                        for j in reversed(range(0, p)):
+                            if token_pos[j][1] == 'NNG' or token_pos[j][1] == 'NNP':
+                                pos_attention_matrix[p + add, j + add] = power
+
+                                if token_pos[p - 1][1] == 'NR':
+                                    pos_attention_matrix[p + add, p - 1 + add] = power
+                                    pos_attention_matrix[p - 1 + add, p + add] = power
+
+                                    pos_attention_matrix[p - 1 + add, j + add] = power
+                                    pos_attention_matrix[j + add, p - 1 + add] = power
+                                break
+                        if token_pos[p-1][1] == 'NR':
+                            pos_attention_matrix[p + add, p - 1 + add] = power
+                            pos_attention_matrix[p - 1 + add, p + add] = power
+
+                    # 보격 조사 -> 앞 명사
+                    if pos[1] == 'JKC':
+                        for j in reversed(range(0, p)):
+                            if token_pos[j][1][0] == 'N':
+                                pos_attention_matrix[p + add, j + add] = power
+                                pos_attention_matrix[j + add, p + add] = power
+                                break
+                        # 보어 == 주어
+                        for j in reversed(range(0, p)):
+                            if token_pos[j][1] == 'JKS':
+                                pos_attention_matrix[p + add, j - 1 + add] = power
+                                pos_attention_matrix[j - 1 + add, p + add] = power
+
+                    # 부사격, 인용격 제외 조사 -> 명사
+                    if pos[1] in ['JKS', 'JKG', 'JKO', 'JKV', 'JX']:
+                        for j in reversed(range(0, p)):
+                            if token_pos[j][1][0] == 'N':
+                                pos_attention_matrix[p + add, j + add] = power
+                                pos_attention_matrix[j + add, p + add] = power
+                            else:
+                                break
+
+                    #
+                    if pos[1] == 'EF':
+                        if token_pos[p+1][1] == 'SF':
+                            pos_attention_matrix[p + add, p + 1 + add] = power
+                            pos_attention_matrix[p + 1 + add, p + add] = power
+
+                    # 부사격 조사 -> 부사
+                    # if pos[1] == 'JKB':
+                    #     for j in reversed(range(0, p)):
+                    #         if token_pos[j][1] == 'MAG':
+                    #             pos_attention_matrix[p + add, j + add] = power
+                    #             pos_attention_matrix[j + add, p + add] = power
+                    #         else:
+                    #             break
+                    #     for j in range(p, 0):
+                    #         if token_pos[j][1] == 'VV':
+                    #             pos_attention_matrix[p + add, j + add] = power
+                    #             pos_attention_matrix[j + add, p + add] = power
+                    #             break
+
+                    # 접두사
+                    if pos[1] == 'XPN':
+                        pos_attention_matrix[p + add, p + 1 + add] = power
+                        pos_attention_matrix[p + 1 + add, p + add] = power
+
+                    # 접미사
+                    if pos[1][0] == 'X' and pos[1] != 'XPN':
+                        pos_attention_matrix[p + add, p - 1 + add] = power
+                        pos_attention_matrix[p - 1 + add, p + add] = power
+
+                    # 관형격 -> 명사
+                    if pos[1] == 'MM':
+                        try:
+                            for j in reversed(range(p + 1, len(token_pos))):
+                                if token_pos[j][1] == 'NNG':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                                elif token_pos[j][1] == 'NP':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                                elif token_pos[j][1] == 'NNP':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                        except:
+                            None
+
+                    # 관형격 -> 명사
+                    if pos[1] == 'VA+ETM':
+                        try:
+                            for j in range(p + 1, len(token_pos)):
+                                if token_pos[j][1] == 'NNG':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                                elif token_pos[j][1] == 'NP':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                                elif token_pos[j][1] == 'NNP':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                        except:
+                            None
+
+                    # 부사 -> 부사 혹은 동사
+                    if pos[1] == 'MAG':
+                        try:
+                            for j in reversed(range(p + 1, len(token_pos))):
+                                if token_pos[j][1] == 'MAG':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                elif token_pos[j][1] == 'VV':
+                                    pos_attention_matrix[p + add, j + add] = power
+                                    pos_attention_matrix[j + add, p + add] = power
+                                    break
+                                # elif token_pos[j][1] == 'XSV+EP':
+                                #     pos_attention_matrix[p + add, j + add] = power
+                                #     pos_attention_matrix[j + add, p + add] = power
+                                #     break
+                        except:
+                            None
+
+                    # 동사 전에 목적격 조사 있는 경우 -> 조사에 어텐션 주고 -> 그 후 동사 행위하는 주체에게 어텐션
+                    if pos[1] == 'VV':
+                        for j in reversed(range(0, p)):
+                            if token_pos[j][1] == 'JKO':
+                                pos_attention_matrix[p + add, j + add] = power
+                                pos_attention_matrix[j + add, p + add] = power
+
+                                for k in range(token_pos):
+                                    if pos[k] == 'JKS':
+                                        pos_attention_matrix[p + add, k + add] = power
+                                        pos_attention_matrix[k + add, p + add] = power
+                                        break
+                                    if token_pos[k][1] == 'NNG':
+                                        pos_attention_matrix[p + add, k + add] = power
+                                        pos_attention_matrix[k + add, p + add] = power
+                                        break
+                                    elif token_pos[k][1] == 'NP':
+                                        pos_attention_matrix[p + add, k + add] = power
+                                        pos_attention_matrix[k + add, p + add] = power
+                                        break
+                                    elif token_pos[k][1] == 'NNP':
+                                        pos_attention_matrix[p + add, k + add] = power
+                                        pos_attention_matrix[k + add, p + add] = power
+                                        break
+
+                except:
+                    #print('except!')
+                    None
+
+규칙 3
+                    if pos[1] == 'NNB':
+                        pos_attention_matrix[p + add, p - 1 + add] = power
+                        pos_attention_matrix[p - 1 + add, p + add] = power
+
+                    if pos[1] == 'NNBC':
+                        pos_attention_matrix[p - 1 + add, p - 2 + add] = power
+                        pos_attention_matrix[p - 2 + add, p - 1 + add] = power
+
+                        pos_attention_matrix[p - 1 + add, p + add] = power
+                        pos_attention_matrix[p + add, p - 1 + add] = power
+
+                    # 보격 조사 -> 앞 명사 ### important!!!!
+                    if pos[1] == 'JKC':
+                        for j in reversed(range(0, p)):
+                            if token_pos[j][1][0] == 'N':
+                                pos_attention_matrix[p + add, j + add] = power
+                                pos_attention_matrix[j + add, p + add] = power
+                                break
+                        # 보어 == 주어
+                        for j in reversed(range(0, p)):
+                            if token_pos[j][1] == 'JKS':
+                                pos_attention_matrix[p + add, j - 1 + add] = power
+                                pos_attention_matrix[j - 1 + add, p + add] = power
