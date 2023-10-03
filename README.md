@@ -35,7 +35,7 @@
 ---
 # Model
 
-![image](https://github.com/HyeLynnKIM/Morphological-Rule-based-Self-Attention-Control-Training-Methodology/assets/64192139/a21dac60-ed31-46f5-88be-bc36ad7c0b8a)
+![image](https://github.com/HyeLynnKIM/Morphological-Rule-based-Self-Attention-Control-Training-Methodology/assets/64192139/ce6a6cb6-1536-4b7d-8c85-6a2a00fe36cb)
 
 #### [그림 1] 모델 전체 학습 구조 및 규칙 기반 어텐션 제어 세부 구조
 ---
