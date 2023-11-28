@@ -43,9 +43,7 @@
 
 #### [그림 1] 모델 전체 학습 구조 및 규칙 기반 어텐션 제어 세부 구조
 ---
-# File Description
 
----
 # Morphological Rule
 |어텐션 제어 규칙|내용|예시|
 |:---:|:---:|:---:|
@@ -55,3 +53,8 @@
 |관형사|관형사와 그 수식되는 체언을 서로 강조한다.|진짜 멋진 신발이다.|
 |부사|부사와 그 수식되는 품사를 서로 강조한다.|밥을 빨리 먹자.|
 |보조 용언| 보조 용언과 본용언을 서로 강조한다.|나는 그렇게 알고 있다.|
+
+---
+# Result
+![image](https://github.com/HyeLynnKIM/Morphological-Rule-based-Self-Attention-Control-Training-Methodology/assets/64192139/a582cffa-6241-41c8-a8c8-6c60cdff41ce)
+
